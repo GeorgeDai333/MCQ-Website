@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Delete Quiz{% endblock %}
+{% block content %}
+  <h1>Delete "{{ quiz.title }}"?</h1>
+  <p>This permanently deletes the quiz, its question bank, and all student attempts and answers. This cannot be undone.</p>
+  <form method="post">
+    {% csrf_token %}
+    <button class="btn btn-danger" type="submit">Yes, delete permanently</button>
+    <a class="btn" href="{% url 'quizzes:teacher_dashboard' %}">Cancel</a>
+  </form>
+{% endblock %}

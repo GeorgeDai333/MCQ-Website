@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ attempt.quiz.title }}{% endblock %}
+{% block extra_head %}
+  <script src="{% static 'js/timer.js' %}" defer></script>
+  <script src="{% static 'js/autosave.js' %}" defer></script>
+{% endblock %}
+{% block content %}
+  <div id="quiz-timer"
+       data-deadline-at="{{ attempt.deadline_at.isoformat }}"
+       data-server-time="{% now "c" %}">
+    Time remaining: <span id="time-remaining">--:--</span>
+  </div>
+
+  <h1>{{ attempt.quiz.title }}</h1>
+  <p>Answer all {{ questions|length }} questions below, then click Submit. Use Save periodically so your progress isn't lost.</p>
+
+  <form id="quiz-form"
+        method="post"
+        action="{% url 'quizzes:student_submit_attempt' attempt.pk %}"
+        data-autosave-url="{% url 'quizzes:student_autosave_attempt' attempt.pk %}">
+    {% csrf_token %}
+    {% for aq in questions %}
+      <div class="question-block">
+        <p><strong>{{ aq.position }}.</strong> {{ aq.bank_item.question_text }}</p>
+        {% for opt in aq.shuffled_options %}
+          <label class="option">
+            <input type="radio" name="q_{{ aq.id }}" value="{{ opt.label }}"
+              {% if aq.answer.selected_label == opt.label %}checked{% endif %}>
+            {{ opt.label }}. {{ opt.text }}
+          </label>
+        {% endfor %}
+      </div>
+    {% endfor %}
+
+    <button type="button" class="btn" id="save-btn">Save</button>
+    <span id="save-indicator"></span>
+    <button type="submit" class="btn btn-primary" id="submit-btn"
+            onclick="return confirm('Submit the quiz? You cannot make changes after submitting.');">
+      Submit Quiz
+    </button>
+  </form>
+{% endblock %}

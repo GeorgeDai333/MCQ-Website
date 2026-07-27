@@ -1,0 +1,34 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}MCQ{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <nav class="topbar">
+    <a href="{% url 'accounts:landing' %}">MCQ</a>
+    <div>
+      {% if user.is_authenticated %}
+        <span>{{ user.email }}</span>
+        <form class="logout-form" method="post" action="{% url 'account_logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn">Log out</button>
+        </form>
+      {% endif %}
+    </div>
+  </nav>
+  <div class="container">
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

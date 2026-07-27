@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Review Quiz Questions{% endblock %}
+{% block content %}
+  <h1>Review Parsed Questions for "{{ quiz.title }}"</h1>
+  <p>Check the automatically-parsed questions below and fix anything that looks wrong. Blank rows at the end can be used to add missed questions manually. This quiz needs at least {{ quiz.quiz_length }} question(s) to be confirmed.</p>
+
+  {% if parse_errors %}
+    <div class="parse-errors">
+      <strong>Could not parse {{ parse_errors|length }} row(s) automatically.</strong> Please add them manually below if needed.
+      <ul>
+        {% for err in parse_errors %}
+          <li>Row {{ err.index }}: {{ err.message }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    {{ formset.non_form_errors }}
+    {% for form in formset %}
+      <div class="review-row">
+        {{ form.non_field_errors }}
+        <p>
+          {{ form.question_text.label_tag }}
+          {{ form.question_text }}
+          {{ form.question_text.errors }}
+        </p>
+        <p>{{ form.option_A.label_tag }}{{ form.option_A }}</p>
+        <p>{{ form.option_B.label_tag }}{{ form.option_B }}</p>
+        <p>{{ form.option_C.label_tag }}{{ form.option_C }}</p>
+        <p>{{ form.option_D.label_tag }}{{ form.option_D }}</p>
+        <p>{{ form.option_E.label_tag }}{{ form.option_E }}</p>
+        <p>{{ form.option_F.label_tag }}{{ form.option_F }}</p>
+        <p>
+          {{ form.correct_label.label_tag }}
+          {{ form.correct_label }}
+          {{ form.correct_label.errors }}
+        </p>
+        <p>
+          <label>{{ form.delete }} Delete this row</label>
+        </p>
+      </div>
+    {% endfor %}
+    <button class="btn btn-primary" type="submit">Confirm &amp; Activate Quiz</button>
+  </form>
+{% endblock %}

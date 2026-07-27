@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}MCQ - Log in{% endblock %}
+{% block content %}
+  <h1>MCQ</h1>
+  <p>A platform for teachers to build multiple-choice quizzes and for students to take them.</p>
+  <div class="card">
+    <h2>Student</h2>
+    <p>Take quizzes assigned to you and see your scores.</p>
+    <a class="btn btn-primary" href="{% url 'accounts:student_login' %}">Log in as Student (Google)</a>
+  </div>
+  <div class="card">
+    <h2>Teacher</h2>
+    <p>Create and manage quizzes. Requires an approved teacher account.</p>
+    <a class="btn btn-primary" href="{% url 'accounts:teacher_login' %}">Log in as Teacher (Google)</a>
+  </div>
+{% endblock %}

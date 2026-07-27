@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == "create" %}New Quiz{% else %}Edit Quiz{% endif %}{% endblock %}
+{% block content %}
+  <h1>{% if mode == "create" %}Create Quiz{% else %}Edit Quiz{% endif %}</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+      <p>
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+        {{ field.errors }}
+      </p>
+    {% endfor %}
+    <button class="btn btn-primary" type="submit">
+      {% if mode == "create" %}Create and Continue to Upload{% else %}Save Changes{% endif %}
+    </button>
+  </form>
+{% endblock %}

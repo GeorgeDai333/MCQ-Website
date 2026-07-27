@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Teacher Dashboard{% endblock %}
+{% block content %}
+  <h1>Your Quizzes</h1>
+  <a class="btn btn-primary" href="{% url 'quizzes:teacher_quiz_create' %}">+ New Quiz</a>
+
+  {% for quiz in quizzes %}
+    <div class="card">
+      <h2>{{ quiz.title }} <span class="badge badge-pending">{{ quiz.get_status_display }}</span></h2>
+      <p>
+        Length: {{ quiz.quiz_length }} questions &middot;
+        Duration: {{ quiz.duration_minutes }} min &middot;
+        Passing: {{ quiz.passing_score }}%<br>
+        Opens: {{ quiz.opening_time }} &middot; Closes: {{ quiz.closing_time }}<br>
+        Retakes allowed: {{ quiz.allow_retake_on_fail|yesno:"Yes,No" }} &middot;
+        Show class average: {{ quiz.show_class_average|yesno:"Yes,No" }}
+      </p>
+      <p>
+        {% if quiz.status == "draft" %}
+          <a class="btn btn-primary" href="{% url 'quizzes:teacher_quiz_upload' quiz.pk %}">Upload / Continue Setup</a>
+        {% endif %}
+        {% if not quiz.is_locked %}
+          <a class="btn" href="{% url 'quizzes:teacher_quiz_edit' quiz.pk %}">Edit</a>
+        {% endif %}
+        <a class="btn btn-danger" href="{% url 'quizzes:teacher_quiz_delete' quiz.pk %}">Delete</a>
+        {% if quiz.status == "active" %}
+          <a class="btn" href="{% url 'quizzes:teacher_quiz_export_csv' quiz.pk %}">Download CSV Results</a>
+          <a class="btn" href="{% url 'quizzes:teacher_quiz_export_docx' quiz.pk %}?new_sample=1">Download Printable Sample (.docx)</a>
+        {% endif %}
+      </p>
+    </div>
+  {% empty %}
+    <p>You haven't created any quizzes yet.</p>
+  {% endfor %}
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Results - {{ attempt.quiz.title }}{% endblock %}
+{% block content %}
+  <h1>{{ attempt.quiz.title }} - Results</h1>
+  <div class="card">
+    <p>Score: <strong>{{ attempt.score_percent }}%</strong> (passing: {{ attempt.quiz.passing_score }}%)</p>
+    <p>
+      {% if attempt.passed %}
+        <span class="badge badge-pass">Passed</span>
+      {% else %}
+        <span class="badge badge-fail">Failed</span>
+      {% endif %}
+    </p>
+    {% if attempt.auto_submitted %}
+      <p><em>This attempt was automatically submitted when time ran out.</em></p>
+    {% endif %}
+  </div>
+  <a class="btn btn-primary" href="{% url 'quizzes:student_dashboard' %}">Back to Dashboard</a>
+{% endblock %}

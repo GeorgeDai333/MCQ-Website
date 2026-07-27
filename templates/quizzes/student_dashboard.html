@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Your Quizzes{% endblock %}
+{% block content %}
+  <h1>Available Quizzes</h1>
+  {% for row in rows %}
+    <div class="card">
+      <h2>{{ row.quiz.title }}</h2>
+      <p>
+        Time limit: {{ row.quiz.duration_minutes }} minutes &middot;
+        Closes: {{ row.quiz.closing_time }}
+        {% if row.class_average is not None %}
+          &middot; Class average: {{ row.class_average|floatformat:1 }}%
+        {% endif %}
+      </p>
+      {% if not row.attempt %}
+        <form method="post" action="{% url 'quizzes:student_start_attempt' row.quiz.pk %}">
+          {% csrf_token %}
+          <button class="btn btn-primary" type="submit">Take Quiz</button>
+        </form>
+      {% elif row.attempt.submitted_at is None %}
+        <a class="btn btn-primary" href="{% url 'quizzes:student_take_attempt' row.attempt.pk %}">Resume Quiz</a>
+      {% elif row.attempt.passed %}
+        <p><span class="badge badge-pass">Passed</span> Score: {{ row.attempt.score_percent }}%</p>
+      {% else %}
+        <p><span class="badge badge-fail">Failed</span> Score: {{ row.attempt.score_percent }}%</p>
+        {% if row.quiz.allow_retake_on_fail %}
+          <form method="post" action="{% url 'quizzes:student_start_attempt' row.quiz.pk %}">
+            {% csrf_token %}
+            <button class="btn btn-primary" type="submit">Retake Quiz</button>
+          </form>
+        {% endif %}
+      {% endif %}
+    </div>
+  {% empty %}
+    <p>No quizzes are currently open.</p>
+  {% endfor %}
+
+  {% if history_rows %}
+    <h1>Past Quizzes</h1>
+    <table>
+      <thead><tr><th>Quiz</th><th>Score</th><th>Result</th></tr></thead>
+      <tbody>
+        {% for row in history_rows %}
+          <tr>
+            <td>{{ row.quiz.title }}</td>
+            <td>{% if row.attempt.score_percent is not None %}{{ row.attempt.score_percent }}%{% else %}--{% endif %}</td>
+            <td>
+              {% if row.attempt.passed %}
+                <span class="badge badge-pass">Passed</span>
+              {% elif row.attempt.passed is False %}
+                <span class="badge badge-fail">Failed</span>
+              {% else %}
+                <span class="badge badge-pending">In progress / expired</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endblock %}

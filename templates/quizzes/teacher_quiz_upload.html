@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Upload Question Bank{% endblock %}
+{% block content %}
+  <h1>Upload Question Bank for "{{ quiz.title }}"</h1>
+  <p>Upload a .txt or .docx file containing your question bank and a trailing answer key. It's fine to include more questions than the quiz length ({{ quiz.quiz_length }}) -- the system samples randomly per attempt.</p>
+
+  {% if error %}
+    <div class="parse-errors">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+      <p>
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+        {{ field.errors }}
+      </p>
+    {% endfor %}
+    <button class="btn btn-primary" type="submit">Upload &amp; Parse</button>
+  </form>
+{% endblock %}
