@@ -5,3 +5,5 @@ django-allauth[socialaccount]>=0.63
 anthropic>=0.34
 pydantic>=2.7
 python-docx>=1.1
+gunicorn>=22.0
+whitenoise>=6.7
