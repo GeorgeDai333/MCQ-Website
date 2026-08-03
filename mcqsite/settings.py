@@ -30,6 +30,23 @@ SECURE_SSL_REDIRECT = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 
+# Django's default logging only prints tracebacks to the console when
+# DEBUG=True. Override it so unhandled exceptions are always visible in
+# Render's logs (there's no mail server configured to receive them otherwise).
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+}
+
 
 # Application definition
 
