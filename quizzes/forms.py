@@ -1,4 +1,7 @@
 from django import forms
+from django.contrib.auth import get_user_model
+
+from accounts.models import Profile
 
 from .models import Quiz
 
@@ -17,6 +20,8 @@ class QuizMetadataForm(forms.ModelForm):
             "show_class_average",
             "opening_time",
             "closing_time",
+            "assignment",
+            "assigned_students",
         ]
         widgets = {
             "opening_time": forms.DateTimeInput(
@@ -25,12 +30,20 @@ class QuizMetadataForm(forms.ModelForm):
             "closing_time": forms.DateTimeInput(
                 attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"
             ),
+            "assignment": forms.RadioSelect,
+            "assigned_students": forms.CheckboxSelectMultiple,
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["opening_time"].input_formats = ["%Y-%m-%dT%H:%M"]
         self.fields["closing_time"].input_formats = ["%Y-%m-%dT%H:%M"]
+        self.fields["assigned_students"].required = False
+        self.fields["assigned_students"].queryset = (
+            get_user_model()
+            .objects.filter(profile__role=Profile.ROLE_STUDENT)
+            .order_by("email")
+        )
 
     def clean(self):
         cleaned = super().clean()
@@ -41,6 +54,12 @@ class QuizMetadataForm(forms.ModelForm):
         passing = cleaned.get("passing_score")
         if passing is not None and not (0 <= passing <= 100):
             raise forms.ValidationError("Passing score must be between 0 and 100.")
+        if cleaned.get("assignment") == Quiz.ASSIGNMENT_SPECIFIC and not cleaned.get(
+            "assigned_students"
+        ):
+            raise forms.ValidationError(
+                "Select at least one student, or choose \"All students\"."
+            )
         return cleaned
 
 
@@ -140,5 +159,20 @@ def initial_data_for_questions(questions) -> list[dict]:
             if orig_label == correct_label:
                 new_correct = letter
         row["correct_label"] = new_correct
+        initial.append(row)
+    return initial
+
+
+def initial_data_for_bank_items(bank_items) -> list[dict]:
+    """Build formset initial data from already-persisted QuestionBankItem
+    rows, for resuming a review that was saved (but not confirmed) earlier.
+    Options are already re-lettered A, B, C... at save time, so no
+    re-lettering is needed here (unlike initial_data_for_questions).
+    """
+    initial = []
+    for item in bank_items:
+        row = {"question_text": item.question_text, "correct_label": item.correct_label}
+        for opt in item.options:
+            row[f"option_{opt['label']}"] = opt["text"]
         initial.append(row)
     return initial

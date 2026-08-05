@@ -1,0 +1,12 @@
+{% extends "admin/login.html" %}
+
+{% block content %}
+{% if admin_test_username and admin_test_password %}
+  <p style="background:#fff3cd;border:1px solid #ffe69c;padding:0.75rem;border-radius:4px;margin-bottom:1rem;">
+    <strong>Testing phase:</strong> log in with username
+    <code>{{ admin_test_username }}</code> and password
+    <code>{{ admin_test_password }}</code>.
+  </p>
+{% endif %}
+{{ block.super }}
+{% endblock %}

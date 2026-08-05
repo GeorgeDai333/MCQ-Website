@@ -13,11 +13,21 @@
         Passing: {{ quiz.passing_score }}%<br>
         Opens: {{ quiz.opening_time }} &middot; Closes: {{ quiz.closing_time }}<br>
         Retakes allowed: {{ quiz.allow_retake_on_fail|yesno:"Yes,No" }} &middot;
-        Show class average: {{ quiz.show_class_average|yesno:"Yes,No" }}
+        Show class average: {{ quiz.show_class_average|yesno:"Yes,No" }}<br>
+        Assigned to:
+        {% if quiz.assignment == "all" %}
+          All students
+        {% else %}
+          {{ quiz.assigned_students.count }} specific student(s)
+        {% endif %}
       </p>
       <p>
         {% if quiz.status == "draft" %}
-          <a class="btn btn-primary" href="{% url 'quizzes:teacher_quiz_upload' quiz.pk %}">Upload / Continue Setup</a>
+          {% if quiz.bank_items.exists %}
+            <a class="btn btn-primary" href="{% url 'quizzes:teacher_quiz_review' quiz.pk %}">Continue Reviewing Questions</a>
+          {% else %}
+            <a class="btn btn-primary" href="{% url 'quizzes:teacher_quiz_upload' quiz.pk %}">Upload / Continue Setup</a>
+          {% endif %}
         {% endif %}
         {% if not quiz.is_locked %}
           <a class="btn" href="{% url 'quizzes:teacher_quiz_edit' quiz.pk %}">Edit</a>

@@ -14,6 +14,7 @@ from ..forms import (
     QuestionReviewFormSet,
     QuizMetadataForm,
     QuizUploadForm,
+    initial_data_for_bank_items,
     initial_data_for_questions,
 )
 from ..models import QuestionBankItem, Quiz
@@ -39,6 +40,12 @@ def teacher_quiz_create(request):
             quiz.owner = request.user
             quiz.status = Quiz.STATUS_DRAFT
             quiz.save()
+            form.save_m2m()
+            if "save_and_quit" in request.POST:
+                messages.success(
+                    request, "Quiz saved as a draft. Continue it anytime from your dashboard."
+                )
+                return redirect("quizzes:teacher_dashboard")
             return redirect("quizzes:teacher_quiz_upload", pk=quiz.pk)
     else:
         form = QuizMetadataForm()
@@ -95,9 +102,13 @@ def teacher_quiz_review(request, pk):
         messages.info(request, "This quiz has already been confirmed.")
         return redirect("quizzes:teacher_dashboard")
 
+    resuming_saved_progress = False
     if draft_questions is None:
-        messages.warning(request, "Please upload a question bank file first.")
-        return redirect("quizzes:teacher_quiz_upload", pk=quiz.pk)
+        if quiz.bank_items.exists():
+            resuming_saved_progress = True
+        else:
+            messages.warning(request, "Please upload a question bank file first.")
+            return redirect("quizzes:teacher_quiz_upload", pk=quiz.pk)
 
     if request.method == "POST":
         formset = QuestionReviewFormSet(request.POST)
@@ -108,7 +119,8 @@ def teacher_quiz_review(request, pk):
                 if not f.cleaned_data.get("delete")
                 and not f.cleaned_data.get("_blank")
             ]
-            if len(surviving) < quiz.quiz_length:
+            save_and_quit = "save_and_quit" in request.POST
+            if not save_and_quit and len(surviving) < quiz.quiz_length:
                 messages.error(
                     request,
                     f"Quiz length is {quiz.quiz_length}, but only "
@@ -126,12 +138,23 @@ def teacher_quiz_review(request, pk):
                             options=data["_options"],
                             correct_label=data["correct_label"],
                         )
-                    quiz.status = Quiz.STATUS_ACTIVE
-                    quiz.save(update_fields=["status"])
+                    if not save_and_quit:
+                        quiz.status = Quiz.STATUS_ACTIVE
+                        quiz.save(update_fields=["status"])
                 request.session.pop(DRAFT_SESSION_KEY.format(quiz.pk), None)
                 request.session.pop(ERRORS_SESSION_KEY.format(quiz.pk), None)
-                messages.success(request, "Quiz confirmed and activated.")
+                if save_and_quit:
+                    messages.success(
+                        request,
+                        "Progress saved as a draft. Continue reviewing anytime from your dashboard.",
+                    )
+                else:
+                    messages.success(request, "Quiz confirmed and activated.")
                 return redirect("quizzes:teacher_dashboard")
+    elif resuming_saved_progress:
+        formset = QuestionReviewFormSet(
+            initial=initial_data_for_bank_items(quiz.bank_items.all())
+        )
     else:
         formset = QuestionReviewFormSet(
             initial=initial_data_for_questions(draft_questions)

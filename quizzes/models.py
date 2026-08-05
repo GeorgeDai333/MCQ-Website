@@ -14,6 +14,13 @@ class Quiz(models.Model):
         (STATUS_ARCHIVED, "Archived"),
     ]
 
+    ASSIGNMENT_ALL = "all"
+    ASSIGNMENT_SPECIFIC = "specific"
+    ASSIGNMENT_CHOICES = [
+        (ASSIGNMENT_ALL, "All students"),
+        (ASSIGNMENT_SPECIFIC, "Specific students"),
+    ]
+
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
@@ -35,6 +42,15 @@ class Quiz(models.Model):
     closing_time = models.DateTimeField()
     status = models.CharField(
         max_length=10, choices=STATUS_CHOICES, default=STATUS_DRAFT
+    )
+    assignment = models.CharField(
+        max_length=10, choices=ASSIGNMENT_CHOICES, default=ASSIGNMENT_ALL
+    )
+    assigned_students = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name="assigned_quizzes",
+        blank=True,
+        help_text="Only used when assignment is 'Specific students'.",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -73,6 +89,11 @@ class Quiz(models.Model):
             self.status == self.STATUS_ACTIVE
             and self.opening_time <= now <= self.closing_time
         )
+
+    def is_visible_to(self, user):
+        if self.assignment == self.ASSIGNMENT_ALL:
+            return True
+        return self.assigned_students.filter(pk=user.pk).exists()
 
 
 class QuestionBankItem(models.Model):

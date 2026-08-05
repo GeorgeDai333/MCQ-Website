@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Avg
+from django.db.models import Avg, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -35,6 +35,8 @@ def student_dashboard(request):
         Quiz.objects.filter(
             status=Quiz.STATUS_ACTIVE, opening_time__lte=now, closing_time__gte=now
         )
+        .filter(Q(assignment=Quiz.ASSIGNMENT_ALL) | Q(assigned_students=request.user))
+        .distinct()
     )
 
     rows = []
@@ -78,7 +80,7 @@ def student_dashboard(request):
 def student_start_attempt(request, pk):
     quiz = get_object_or_404(Quiz, pk=pk)
 
-    if not quiz.is_open_for_students:
+    if not quiz.is_open_for_students or not quiz.is_visible_to(request.user):
         messages.error(request, "This quiz is not currently open.")
         return redirect("quizzes:student_dashboard")
 
