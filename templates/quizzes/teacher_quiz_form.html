@@ -6,12 +6,12 @@
     {% csrf_token %}
     {{ form.non_field_errors }}
     {% for field in form %}
-      <p id="field-{{ field.name }}">
+      <div id="field-{{ field.name }}" class="form-row">
         {{ field.label_tag }}
         {{ field }}
         {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
         {{ field.errors }}
-      </p>
+      </div>
     {% endfor %}
     <button class="btn btn-primary" type="submit">
       {% if mode == "create" %}Create and Continue to Upload{% else %}Save Changes{% endif %}

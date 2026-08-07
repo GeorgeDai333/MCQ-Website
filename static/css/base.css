@@ -81,7 +81,7 @@ th, td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var
 .badge-fail { background: #ffebe9; color: var(--danger); }
 .badge-pending { background: var(--bg-subtle); color: var(--muted); }
 
-form p { margin: 0.6rem 0; }
+form p, form .form-row { margin: 0.6rem 0; }
 label { font-weight: 600; display: block; margin-bottom: 0.2rem; }
 input[type=text], input[type=number], input[type=datetime-local], textarea, select {
   width: 100%;
