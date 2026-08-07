@@ -2,7 +2,7 @@
 {% block title %}Review Quiz Questions{% endblock %}
 {% block content %}
   <h1>Review Parsed Questions for "{{ quiz.title }}"</h1>
-  <p>Check the automatically-parsed questions below and fix anything that looks wrong. Blank rows at the end can be used to add missed questions manually.
+  <p>Check the automatically-parsed questions below and fix anything that looks wrong. Use "Add Question" to add more, or "Delete Question" to remove one.
     {% if quiz.quiz_length %}
       This quiz needs at least {{ quiz.quiz_length }} question(s) to be confirmed.
     {% else %}
@@ -21,36 +21,60 @@
     </div>
   {% endif %}
 
-  <form method="post">
+  <form method="post" id="review-form">
     {% csrf_token %}
     {{ formset.management_form }}
     {{ formset.non_form_errors }}
-    {% for form in formset %}
-      <div class="review-row">
-        {{ form.non_field_errors }}
-        <p>
-          {{ form.question_text.label_tag }}
-          {{ form.question_text }}
-          {{ form.question_text.errors }}
-        </p>
-        <p>{{ form.option_A.label_tag }}{{ form.option_A }}</p>
-        <p>{{ form.option_B.label_tag }}{{ form.option_B }}</p>
-        <p>{{ form.option_C.label_tag }}{{ form.option_C }}</p>
-        <p>{{ form.option_D.label_tag }}{{ form.option_D }}</p>
-        <p>{{ form.option_E.label_tag }}{{ form.option_E }}</p>
-        <p>{{ form.option_F.label_tag }}{{ form.option_F }}</p>
-        <p>
-          {{ form.correct_label.label_tag }}
-          {{ form.correct_label }}
-          {{ form.correct_label.errors }}
-        </p>
-        <p>
-          <label>{{ form.delete }} Delete this row</label>
-        </p>
+    <div id="review-rows">
+      {% for form in formset %}
+        {% include "quizzes/_review_row.html" %}
+      {% endfor %}
+    </div>
+    <button type="button" class="btn" id="add-question-btn">+ Add Question</button>
+    {% if row_errors %}
+      <div class="review-errors" role="alert">
+        <strong>Fix {{ row_errors|length }} question(s) before saving:</strong>
+        <ul>
+          {% for row in row_errors %}
+            <li>
+              <a href="#review-row-{{ row.anchor }}">Row {{ row.row_number }} ({{ row.preview }})</a>:
+              {{ row.messages|join:"; " }}
+            </li>
+          {% endfor %}
+        </ul>
       </div>
-    {% endfor %}
+    {% endif %}
     <button class="btn btn-primary" type="submit">Confirm &amp; Activate Quiz</button>
     <button class="btn" type="submit" name="save_and_quit" value="1">Save and Quit</button>
   </form>
   <p><a class="btn btn-danger" href="{% url 'quizzes:teacher_quiz_delete' quiz.pk %}">Discard Quiz</a></p>
+
+  <template id="empty-row-template">
+    {% include "quizzes/_review_row.html" with form=formset.empty_form %}
+  </template>
+  <script>
+    (function () {
+      var rowsContainer = document.getElementById("review-rows");
+      var totalFormsInput = document.getElementById("id_form-TOTAL_FORMS");
+      var addButton = document.getElementById("add-question-btn");
+      var emptyRowHtml = document.getElementById("empty-row-template").innerHTML;
+
+      addButton.addEventListener("click", function () {
+        var newIndex = totalFormsInput.value;
+        var html = emptyRowHtml.split("__prefix__").join(newIndex);
+        var wrapper = document.createElement("div");
+        wrapper.innerHTML = html.trim();
+        rowsContainer.appendChild(wrapper.firstElementChild);
+        totalFormsInput.value = parseInt(newIndex, 10) + 1;
+      });
+
+      rowsContainer.addEventListener("click", function (event) {
+        if (!event.target.classList.contains("delete-row-btn")) return;
+        var row = event.target.closest(".review-row");
+        var deleteCheckbox = row.querySelector('input[name$="-delete"]');
+        if (deleteCheckbox) deleteCheckbox.checked = true;
+        row.style.display = "none";
+      });
+    })();
+  </script>
 {% endblock %}

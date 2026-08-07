@@ -25,6 +25,34 @@ DRAFT_SESSION_KEY = "ingestion_draft_{}"
 ERRORS_SESSION_KEY = "ingestion_errors_{}"
 
 
+def _review_row_errors(formset):
+    """Flatten a review formset's per-row errors into a summary the
+    template can render next to the save buttons -- with a full formset,
+    the row an error is actually on can easily be scrolled out of view.
+    """
+    summary = []
+    for i, form in enumerate(formset, start=1):
+        if not form.errors:
+            continue
+        messages_list = []
+        for field, errors in form.errors.items():
+            if field == "__all__":
+                messages_list.extend(errors)
+            else:
+                label = form.fields[field].label or field
+                messages_list.extend(f"{label}: {error}" for error in errors)
+        preview = (form["question_text"].value() or "").strip()
+        summary.append(
+            {
+                "row_number": i,
+                "anchor": form.prefix,
+                "preview": preview[:60] or "(blank question)",
+                "messages": messages_list,
+            }
+        )
+    return summary
+
+
 @teacher_required
 def teacher_dashboard(request):
     quizzes = request.user.quizzes.order_by("-created_at")
@@ -110,6 +138,7 @@ def teacher_quiz_review(request, pk):
             messages.warning(request, "Please upload a question bank file first.")
             return redirect("quizzes:teacher_quiz_upload", pk=quiz.pk)
 
+    row_errors = []
     if request.method == "POST":
         formset = QuestionReviewFormSet(request.POST)
         if formset.is_valid():
@@ -157,6 +186,8 @@ def teacher_quiz_review(request, pk):
                 else:
                     messages.success(request, "Quiz confirmed and activated.")
                 return redirect("quizzes:teacher_dashboard")
+        else:
+            row_errors = _review_row_errors(formset)
     elif resuming_saved_progress:
         formset = QuestionReviewFormSet(
             initial=initial_data_for_bank_items(quiz.bank_items.all())
@@ -169,7 +200,12 @@ def teacher_quiz_review(request, pk):
     return render(
         request,
         "quizzes/teacher_quiz_review.html",
-        {"quiz": quiz, "formset": formset, "parse_errors": parse_errors},
+        {
+            "quiz": quiz,
+            "formset": formset,
+            "parse_errors": parse_errors,
+            "row_errors": row_errors,
+        },
     )
 
 

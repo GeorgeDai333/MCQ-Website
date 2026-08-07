@@ -1,0 +1,21 @@
+<div class="review-row" id="review-row-{{ form.prefix }}">
+  {{ form.non_field_errors }}
+  <p>
+    {{ form.question_text.label_tag }}
+    {{ form.question_text }}
+    {{ form.question_text.errors }}
+  </p>
+  <p>{{ form.option_A.label_tag }}{{ form.option_A }}</p>
+  <p>{{ form.option_B.label_tag }}{{ form.option_B }}</p>
+  <p>{{ form.option_C.label_tag }}{{ form.option_C }}</p>
+  <p>{{ form.option_D.label_tag }}{{ form.option_D }}</p>
+  <p>{{ form.option_E.label_tag }}{{ form.option_E }}</p>
+  <p>{{ form.option_F.label_tag }}{{ form.option_F }}</p>
+  <p>
+    {{ form.correct_label.label_tag }}
+    {{ form.correct_label }}
+    {{ form.correct_label.errors }}
+  </p>
+  <p class="delete-field-wrapper" style="display:none">{{ form.delete }}</p>
+  <button type="button" class="btn btn-danger delete-row-btn">Delete Question</button>
+</div>

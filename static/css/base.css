@@ -110,3 +110,5 @@ input[type=text], input[type=number], input[type=datetime-local], textarea, sele
 
 .review-row { border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.75rem; }
 .parse-errors { background: #fff8c5; border: 1px solid #d4a72c; border-radius: 6px; padding: 0.75rem 1rem; margin: 1rem 0; }
+.review-errors { background: #ffebe9; border: 1px solid var(--danger); border-radius: 6px; padding: 0.75rem 1rem; margin: 1rem 0; color: var(--danger); }
+.review-errors a { color: var(--danger); font-weight: 600; }
