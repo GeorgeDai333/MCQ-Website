@@ -52,4 +52,5 @@
     <button class="btn btn-primary" type="submit">Confirm &amp; Activate Quiz</button>
     <button class="btn" type="submit" name="save_and_quit" value="1">Save and Quit</button>
   </form>
+  <p><a class="btn btn-danger" href="{% url 'quizzes:teacher_quiz_delete' quiz.pk %}">Discard Quiz</a></p>
 {% endblock %}

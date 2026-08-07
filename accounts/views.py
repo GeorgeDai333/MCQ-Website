@@ -76,3 +76,19 @@ def complete_profile(request):
         form = ProfileSetupForm(instance=request.user)
 
     return render(request, "accounts/complete_profile.html", {"form": form})
+
+
+@login_required
+def edit_profile(request):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+
+    if request.method == "POST":
+        form = ProfileSetupForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated.")
+            return _dashboard_redirect(profile)
+    else:
+        form = ProfileSetupForm(instance=request.user)
+
+    return render(request, "accounts/edit_profile.html", {"form": form})

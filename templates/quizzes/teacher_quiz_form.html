@@ -19,6 +19,7 @@
     {% if mode == "create" %}
       <button class="btn" type="submit" name="save_and_quit" value="1">Save and Quit</button>
     {% endif %}
+    <a class="btn" href="{% url 'quizzes:teacher_dashboard' %}">Cancel</a>
   </form>
   <script>
     (function () {

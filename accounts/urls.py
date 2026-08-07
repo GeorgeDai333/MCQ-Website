@@ -10,4 +10,5 @@ urlpatterns = [
     path("login/teacher/", views.teacher_login, name="teacher_login"),
     path("post-login/", views.post_login_redirect, name="post_login_redirect"),
     path("complete-profile/", views.complete_profile, name="complete_profile"),
+    path("profile/", views.edit_profile, name="edit_profile"),
 ]

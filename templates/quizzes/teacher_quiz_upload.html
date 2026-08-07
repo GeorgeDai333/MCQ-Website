@@ -27,5 +27,8 @@
     {% endfor %}
     <button class="btn btn-primary" type="submit">Upload &amp; Parse</button>
   </form>
-  <p><a class="btn" href="{% url 'quizzes:teacher_dashboard' %}">Save and Quit</a></p>
+  <p>
+    <a class="btn" href="{% url 'quizzes:teacher_dashboard' %}">Keep as Draft &amp; Quit</a>
+    <a class="btn btn-danger" href="{% url 'quizzes:teacher_quiz_delete' quiz.pk %}">Discard Quiz</a>
+  </p>
 {% endblock %}
