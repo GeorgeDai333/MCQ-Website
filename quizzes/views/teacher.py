@@ -26,6 +26,15 @@ DRAFT_SESSION_KEY = "ingestion_draft_{}"
 ERRORS_SESSION_KEY = "ingestion_errors_{}"
 
 
+def _lock_reasons(quiz):
+    reasons = []
+    if timezone.now() >= quiz.opening_time:
+        reasons.append("its opening time has passed")
+    if quiz.attempts.exists():
+        reasons.append("at least one student has already attempted it")
+    return reasons
+
+
 def _review_row_errors(formset):
     """Flatten a review formset's per-row errors into a summary the
     template can render next to the save buttons -- with a full formset,
@@ -127,8 +136,14 @@ def teacher_quiz_review(request, pk):
     draft_questions = request.session.get(DRAFT_SESSION_KEY.format(quiz.pk))
     parse_errors = request.session.get(ERRORS_SESSION_KEY.format(quiz.pk), [])
 
-    if quiz.status != Quiz.STATUS_DRAFT:
-        messages.info(request, "This quiz has already been confirmed.")
+    if quiz.is_locked:
+        reasons = _lock_reasons(quiz)
+        messages.error(
+            request,
+            "This quiz's questions can no longer be edited because "
+            + " and ".join(reasons)
+            + ".",
+        )
         return redirect("quizzes:teacher_dashboard")
 
     resuming_saved_progress = False
@@ -164,6 +179,7 @@ def teacher_quiz_review(request, pk):
                         request, "Add at least one question before confirming the quiz."
                     )
             else:
+                was_draft = quiz.status == Quiz.STATUS_DRAFT
                 with transaction.atomic():
                     QuestionBankItem.objects.filter(quiz=quiz).delete()
                     for i, data in enumerate(surviving):
@@ -179,7 +195,9 @@ def teacher_quiz_review(request, pk):
                         quiz.save(update_fields=["status"])
                 request.session.pop(DRAFT_SESSION_KEY.format(quiz.pk), None)
                 request.session.pop(ERRORS_SESSION_KEY.format(quiz.pk), None)
-                if save_and_quit:
+                if not was_draft:
+                    messages.success(request, "Quiz questions updated.")
+                elif save_and_quit:
                     messages.success(
                         request,
                         "Progress saved as a draft. Continue reviewing anytime from your dashboard.",
@@ -232,11 +250,7 @@ def teacher_quiz_edit(request, pk):
     )
 
     if quiz.is_locked:
-        reasons = []
-        if timezone.now() >= quiz.opening_time:
-            reasons.append("its opening time has passed")
-        if quiz.attempts.exists():
-            reasons.append("at least one student has already attempted it")
+        reasons = _lock_reasons(quiz)
         messages.error(
             request,
             "This quiz can no longer be edited because " + " and ".join(reasons) + ".",

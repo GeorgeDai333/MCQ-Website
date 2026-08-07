@@ -32,6 +32,9 @@
         {% endif %}
         {% if not quiz.is_locked %}
           <a class="btn" href="{% url 'quizzes:teacher_quiz_edit' quiz.pk %}">Edit</a>
+          {% if quiz.status == "active" %}
+            <a class="btn" href="{% url 'quizzes:teacher_quiz_review' quiz.pk %}">Edit Questions</a>
+          {% endif %}
         {% endif %}
         <a class="btn btn-danger" href="{% url 'quizzes:teacher_quiz_delete' quiz.pk %}">Delete</a>
         {% if quiz.status == "active" %}
