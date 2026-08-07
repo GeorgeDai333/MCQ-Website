@@ -2,7 +2,13 @@
 {% block title %}Review Quiz Questions{% endblock %}
 {% block content %}
   <h1>Review Parsed Questions for "{{ quiz.title }}"</h1>
-  <p>Check the automatically-parsed questions below and fix anything that looks wrong. Blank rows at the end can be used to add missed questions manually. This quiz needs at least {{ quiz.quiz_length }} question(s) to be confirmed.</p>
+  <p>Check the automatically-parsed questions below and fix anything that looks wrong. Blank rows at the end can be used to add missed questions manually.
+    {% if quiz.quiz_length %}
+      This quiz needs at least {{ quiz.quiz_length }} question(s) to be confirmed.
+    {% else %}
+      This quiz includes every question in the bank, so at least 1 question is needed to be confirmed.
+    {% endif %}
+  </p>
 
   {% if parse_errors %}
     <div class="parse-errors">

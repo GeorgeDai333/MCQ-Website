@@ -31,7 +31,9 @@ def export_attempts_csv(quiz) -> HttpResponse:
     writer = csv.writer(response)
     writer.writerow(
         [
-            "student_name",
+            "username",
+            "first_name",
+            "last_name",
             "student_email",
             "score_percent",
             "passed",
@@ -47,7 +49,9 @@ def export_attempts_csv(quiz) -> HttpResponse:
     for attempt in attempts:
         writer.writerow(
             [
-                attempt.student.get_full_name() or attempt.student.username,
+                attempt.student.username,
+                attempt.student.first_name,
+                attempt.student.last_name,
                 attempt.student.email,
                 attempt.score_percent,
                 attempt.passed,
@@ -92,7 +96,7 @@ def export_blank_sample_docx(quiz) -> HttpResponse:
     to any student/attempt -- entering a paper test-taker's answers back
     into the system afterward is explicitly out of scope for v1."""
     bank_items = list(quiz.bank_items.all())
-    sampled = random.sample(bank_items, k=quiz.quiz_length)
+    sampled = random.sample(bank_items, k=quiz.quiz_length or len(bank_items))
 
     question_rows = []
     for position, bank_item in enumerate(sampled, start=1):

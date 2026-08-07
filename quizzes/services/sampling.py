@@ -48,7 +48,22 @@ def start_attempt(quiz, student) -> QuizAttempt:
         )
 
     bank_items = list(quiz.bank_items.all())
-    sampled = random.sample(bank_items, k=quiz.quiz_length)
+    # A blank quiz_length means "use every question in the bank."
+    target_length = quiz.quiz_length or len(bank_items)
+
+    # On a retake, prefer bank items the student hasn't already seen on this
+    # quiz, so failing and retaking pulls a genuinely different set rather
+    # than just reshuffling the same one. Falls back to the full bank once
+    # there aren't enough unseen items left to fill target_length.
+    seen_ids = set(
+        AttemptQuestion.objects.filter(
+            attempt__quiz=quiz, attempt__student=student
+        ).values_list("bank_item_id", flat=True)
+    )
+    unseen = [item for item in bank_items if item.id not in seen_ids]
+    pool = unseen if len(unseen) >= target_length else bank_items
+
+    sampled = random.sample(pool, k=target_length)
 
     now = timezone.now()
     deadline_at = min(now + timedelta(minutes=quiz.duration_minutes), quiz.closing_time)

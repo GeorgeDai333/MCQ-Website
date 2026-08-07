@@ -23,6 +23,6 @@ class TeacherAllowlistEntryAdmin(admin.ModelAdmin):
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ("user", "role", "created_at")
-    list_filter = ("role",)
+    list_display = ("user", "role", "onboarding_completed", "created_at")
+    list_filter = ("role", "onboarding_completed")
     search_fields = ("user__username", "user__email")

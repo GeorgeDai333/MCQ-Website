@@ -120,13 +120,19 @@ def teacher_quiz_review(request, pk):
                 and not f.cleaned_data.get("_blank")
             ]
             save_and_quit = "save_and_quit" in request.POST
-            if not save_and_quit and len(surviving) < quiz.quiz_length:
-                messages.error(
-                    request,
-                    f"Quiz length is {quiz.quiz_length}, but only "
-                    f"{len(surviving)} question(s) remain after review. "
-                    "Add more questions or lower the quiz length.",
-                )
+            required_minimum = quiz.quiz_length if quiz.quiz_length else 1
+            if not save_and_quit and len(surviving) < required_minimum:
+                if quiz.quiz_length:
+                    messages.error(
+                        request,
+                        f"Quiz length is {quiz.quiz_length}, but only "
+                        f"{len(surviving)} question(s) remain after review. "
+                        "Add more questions or lower the quiz length.",
+                    )
+                else:
+                    messages.error(
+                        request, "Add at least one question before confirming the quiz."
+                    )
             else:
                 with transaction.atomic():
                     QuestionBankItem.objects.filter(quiz=quiz).delete()
@@ -232,8 +238,10 @@ def teacher_quiz_export_docx(request, pk):
         return export_attempt_docx(attempt)
 
     if request.GET.get("new_sample"):
-        if quiz.bank_items.count() < quiz.quiz_length:
+        if quiz.quiz_length and quiz.bank_items.count() < quiz.quiz_length:
             raise Http404("Quiz does not have enough bank items to sample.")
+        if not quiz.bank_items.exists():
+            raise Http404("Quiz has no bank items to sample.")
         return export_blank_sample_docx(quiz)
 
     messages.error(request, "Specify ?attempt=<id> or ?new_sample=1.")

@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
+from .forms import ProfileSetupForm
 from .models import Profile, TeacherAllowlistEntry
 
 INTENT_SESSION_KEY = "login_intent"
@@ -22,6 +23,12 @@ def student_login(request):
 def teacher_login(request):
     request.session[INTENT_SESSION_KEY] = Profile.ROLE_TEACHER
     return redirect(reverse("google_login"))
+
+
+def _dashboard_redirect(profile):
+    if profile.role == Profile.ROLE_TEACHER:
+        return redirect("quizzes:teacher_dashboard")
+    return redirect("quizzes:student_dashboard")
 
 
 @login_required
@@ -46,6 +53,26 @@ def post_login_redirect(request):
             "email to the teacher allowlist if this is unexpected.",
         )
 
-    if profile.role == Profile.ROLE_TEACHER:
-        return redirect("quizzes:teacher_dashboard")
-    return redirect("quizzes:student_dashboard")
+    if not profile.onboarding_completed:
+        return redirect("accounts:complete_profile")
+
+    return _dashboard_redirect(profile)
+
+
+@login_required
+def complete_profile(request):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    if profile.onboarding_completed:
+        return _dashboard_redirect(profile)
+
+    if request.method == "POST":
+        form = ProfileSetupForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            profile.onboarding_completed = True
+            profile.save(update_fields=["onboarding_completed"])
+            return _dashboard_redirect(profile)
+    else:
+        form = ProfileSetupForm(instance=request.user)
+
+    return render(request, "accounts/complete_profile.html", {"form": form})

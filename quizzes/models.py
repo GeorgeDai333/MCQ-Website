@@ -34,12 +34,30 @@ class Quiz(models.Model):
         help_text="Minimum percentage (0-100) correct required to pass."
     )
     quiz_length = models.PositiveIntegerField(
-        help_text="Number of questions sampled from the bank per attempt."
+        null=True,
+        blank=True,
+        help_text=(
+            "Number of questions sampled from the bank per attempt. Leave "
+            "blank to include every question in the bank on every attempt."
+        ),
     )
     allow_retake_on_fail = models.BooleanField(default=False)
     show_class_average = models.BooleanField(default=False)
     opening_time = models.DateTimeField()
-    closing_time = models.DateTimeField()
+    closing_time = models.DateTimeField(
+        help_text="When the quiz stops accepting new attempts from students."
+    )
+    expiration_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=(
+            "When the quiz (and its question bank, attempts, and results) is "
+            "permanently deleted. This is separate from the closing time -- "
+            "students are locked out at closing time, but the quiz and its "
+            "data stick around until it expires. Leave blank to keep it "
+            "indefinitely."
+        ),
+    )
     status = models.CharField(
         max_length=10, choices=STATUS_CHOICES, default=STATUS_DRAFT
     )
@@ -69,6 +87,11 @@ class Quiz(models.Model):
                 raise ValidationError(
                     {"closing_time": "Closing time must be after opening time."}
                 )
+        if self.expiration_time and self.closing_time:
+            if self.expiration_time <= self.closing_time:
+                raise ValidationError(
+                    {"expiration_time": "Expiration time must be after closing time."}
+                )
         if self.passing_score is not None and not (0 <= self.passing_score <= 100):
             raise ValidationError(
                 {"passing_score": "Passing score must be between 0 and 100."}
@@ -89,6 +112,10 @@ class Quiz(models.Model):
             self.status == self.STATUS_ACTIVE
             and self.opening_time <= now <= self.closing_time
         )
+
+    @property
+    def is_expired(self):
+        return self.expiration_time is not None and timezone.now() >= self.expiration_time
 
     def is_visible_to(self, user):
         if self.assignment == self.ASSIGNMENT_ALL:

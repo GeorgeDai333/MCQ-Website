@@ -41,6 +41,10 @@ class Profile(models.Model):
         related_name="profile",
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default=ROLE_STUDENT)
+    onboarding_completed = models.BooleanField(
+        default=False,
+        help_text="Set once the user has confirmed their username and real name.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -20,6 +20,7 @@ class QuizMetadataForm(forms.ModelForm):
             "show_class_average",
             "opening_time",
             "closing_time",
+            "expiration_time",
             "assignment",
             "assigned_students",
         ]
@@ -30,14 +31,29 @@ class QuizMetadataForm(forms.ModelForm):
             "closing_time": forms.DateTimeInput(
                 attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"
             ),
+            "expiration_time": forms.DateTimeInput(
+                attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"
+            ),
             "assignment": forms.RadioSelect,
             "assigned_students": forms.CheckboxSelectMultiple,
+        }
+        labels = {
+            "closing_time": "Closing time (locks students out)",
+            "expiration_time": "Expiration time (auto-deletes the quiz)",
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["opening_time"].input_formats = ["%Y-%m-%dT%H:%M"]
         self.fields["closing_time"].input_formats = ["%Y-%m-%dT%H:%M"]
+        self.fields["expiration_time"].input_formats = ["%Y-%m-%dT%H:%M"]
+        self.fields["expiration_time"].required = False
+        self.fields["expiration_time"].help_text = (
+            "Separate from the closing time above: closing time only stops "
+            "students from taking it. Expiration time permanently deletes "
+            "the quiz, its questions, and all student results. Leave blank "
+            "to never auto-delete it."
+        )
         self.fields["assigned_students"].required = False
         self.fields["assigned_students"].queryset = (
             get_user_model()
@@ -49,8 +65,11 @@ class QuizMetadataForm(forms.ModelForm):
         cleaned = super().clean()
         opening = cleaned.get("opening_time")
         closing = cleaned.get("closing_time")
+        expiration = cleaned.get("expiration_time")
         if opening and closing and closing <= opening:
             raise forms.ValidationError("Closing time must be after opening time.")
+        if closing and expiration and expiration <= closing:
+            raise forms.ValidationError("Expiration time must be after closing time.")
         passing = cleaned.get("passing_score")
         if passing is not None and not (0 <= passing <= 100):
             raise forms.ValidationError("Passing score must be between 0 and 100.")

@@ -2,7 +2,13 @@
 {% block title %}Upload Question Bank{% endblock %}
 {% block content %}
   <h1>Upload Question Bank for "{{ quiz.title }}"</h1>
-  <p>Upload a .txt or .docx file containing your question bank and a trailing answer key. It's fine to include more questions than the quiz length ({{ quiz.quiz_length }}) -- the system samples randomly per attempt.</p>
+  <p>Upload a .txt or .docx file containing your question bank and a trailing answer key.
+    {% if quiz.quiz_length %}
+      It's fine to include more questions than the quiz length ({{ quiz.quiz_length }}) -- the system samples randomly per attempt.
+    {% else %}
+      This quiz is set to include every question in the bank on every attempt.
+    {% endif %}
+  </p>
 
   {% if error %}
     <div class="parse-errors">{{ error }}</div>

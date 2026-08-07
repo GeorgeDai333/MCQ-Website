@@ -13,6 +13,7 @@ class QuizAdmin(admin.ModelAdmin):
         "passing_score",
         "opening_time",
         "closing_time",
+        "expiration_time",
     )
     list_filter = ("status", "allow_retake_on_fail", "show_class_average")
     search_fields = ("title", "owner__username", "owner__email")
