@@ -8,6 +8,17 @@ from .models import Quiz
 OPTION_LETTERS = "ABCDEF"
 
 
+class StudentModelMultipleChoiceField(forms.ModelMultipleChoiceField):
+    """Labels each checkbox with the student's real name and username, not
+    just their email, so a teacher can tell students apart at a glance."""
+
+    def label_from_instance(self, user):
+        full_name = user.get_full_name().strip()
+        if full_name:
+            return f"{full_name} ({user.username}) -- {user.email}"
+        return f"{user.username} -- {user.email}"
+
+
 class QuizMetadataForm(forms.ModelForm):
     class Meta:
         model = Quiz
@@ -41,6 +52,9 @@ class QuizMetadataForm(forms.ModelForm):
             "closing_time": "Closing time (locks students out)",
             "expiration_time": "Expiration time (auto-deletes the quiz)",
         }
+        field_classes = {
+            "assigned_students": StudentModelMultipleChoiceField,
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -58,7 +72,7 @@ class QuizMetadataForm(forms.ModelForm):
         self.fields["assigned_students"].queryset = (
             get_user_model()
             .objects.filter(profile__role=Profile.ROLE_STUDENT)
-            .order_by("email")
+            .order_by("first_name", "last_name", "username")
         )
 
     def clean(self):

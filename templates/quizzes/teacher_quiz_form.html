@@ -6,7 +6,7 @@
     {% csrf_token %}
     {{ form.non_field_errors }}
     {% for field in form %}
-      <p>
+      <p id="field-{{ field.name }}">
         {{ field.label_tag }}
         {{ field }}
         {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
@@ -20,4 +20,21 @@
       <button class="btn" type="submit" name="save_and_quit" value="1">Save and Quit</button>
     {% endif %}
   </form>
+  <script>
+    (function () {
+      var assignedField = document.getElementById("field-assigned_students");
+      var assignmentRadios = document.querySelectorAll('input[name="assignment"]');
+      if (!assignedField || !assignmentRadios.length) return;
+
+      function syncVisibility() {
+        var selected = document.querySelector('input[name="assignment"]:checked');
+        assignedField.style.display = selected && selected.value === "specific" ? "" : "none";
+      }
+
+      assignmentRadios.forEach(function (radio) {
+        radio.addEventListener("change", syncVisibility);
+      });
+      syncVisibility();
+    })();
+  </script>
 {% endblock %}

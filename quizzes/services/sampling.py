@@ -53,17 +53,24 @@ def start_attempt(quiz, student) -> QuizAttempt:
 
     # On a retake, prefer bank items the student hasn't already seen on this
     # quiz, so failing and retaking pulls a genuinely different set rather
-    # than just reshuffling the same one. Falls back to the full bank once
-    # there aren't enough unseen items left to fill target_length.
+    # than just reshuffling the same one. When there aren't enough unseen
+    # items to fill target_length, take all of them and only top up the
+    # remainder from already-seen items -- sampling from the full bank here
+    # instead would risk drawing the exact same combination again on a small
+    # bank (e.g. 3-of-5 has only 10 possible sets).
     seen_ids = set(
         AttemptQuestion.objects.filter(
             attempt__quiz=quiz, attempt__student=student
         ).values_list("bank_item_id", flat=True)
     )
     unseen = [item for item in bank_items if item.id not in seen_ids]
-    pool = unseen if len(unseen) >= target_length else bank_items
+    seen = [item for item in bank_items if item.id in seen_ids]
 
-    sampled = random.sample(pool, k=target_length)
+    if len(unseen) >= target_length:
+        sampled = random.sample(unseen, k=target_length)
+    else:
+        sampled = unseen + random.sample(seen, k=target_length - len(unseen))
+        random.shuffle(sampled)
 
     now = timezone.now()
     deadline_at = min(now + timedelta(minutes=quiz.duration_minutes), quiz.closing_time)
