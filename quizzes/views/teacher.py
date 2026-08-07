@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
@@ -80,7 +81,7 @@ def teacher_quiz_create(request):
     return render(
         request,
         "quizzes/teacher_quiz_form.html",
-        {"form": form, "mode": "create"},
+        {"form": form, "mode": "create", "cancel_url": reverse("quizzes:teacher_dashboard")},
     )
 
 
@@ -209,10 +210,26 @@ def teacher_quiz_review(request, pk):
     )
 
 
+# Where "Edit Quiz Details" can send a teacher back to mid-creation, so
+# tweaking something like quiz_length doesn't strand them on the dashboard.
+NEXT_STEP_URL_NAMES = {
+    "upload": "quizzes:teacher_quiz_upload",
+    "review": "quizzes:teacher_quiz_review",
+}
+
+
 @teacher_required
 def teacher_quiz_edit(request, pk):
     quiz = get_object_or_404(Quiz, pk=pk)
     require_quiz_owner(quiz, request.user)
+
+    next_step = request.POST.get("next") or request.GET.get("next")
+    next_url_name = NEXT_STEP_URL_NAMES.get(next_step)
+    cancel_url = (
+        reverse(next_url_name, args=[quiz.pk])
+        if next_url_name
+        else reverse("quizzes:teacher_dashboard")
+    )
 
     if quiz.is_locked:
         reasons = []
@@ -231,6 +248,8 @@ def teacher_quiz_edit(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, "Quiz updated.")
+            if next_url_name:
+                return redirect(next_url_name, pk=quiz.pk)
             return redirect("quizzes:teacher_dashboard")
     else:
         form = QuizMetadataForm(instance=quiz)
@@ -238,7 +257,13 @@ def teacher_quiz_edit(request, pk):
     return render(
         request,
         "quizzes/teacher_quiz_form.html",
-        {"form": form, "mode": "edit", "quiz": quiz},
+        {
+            "form": form,
+            "mode": "edit",
+            "quiz": quiz,
+            "next": next_step if next_url_name else None,
+            "cancel_url": cancel_url,
+        },
     )
 
 

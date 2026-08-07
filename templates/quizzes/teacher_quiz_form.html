@@ -4,6 +4,7 @@
   <h1>{% if mode == "create" %}Create Quiz{% else %}Edit Quiz{% endif %}</h1>
   <form method="post">
     {% csrf_token %}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
     {{ form.non_field_errors }}
     {% for field in form %}
       <div id="field-{{ field.name }}" class="form-row">
@@ -19,7 +20,7 @@
     {% if mode == "create" %}
       <button class="btn" type="submit" name="save_and_quit" value="1">Save and Quit</button>
     {% endif %}
-    <a class="btn" href="{% url 'quizzes:teacher_dashboard' %}">Cancel</a>
+    <a class="btn" href="{{ cancel_url }}">Cancel</a>
   </form>
   <script>
     (function () {
