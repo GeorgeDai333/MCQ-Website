@@ -321,3 +321,54 @@ def teacher_quiz_export_docx(request, pk):
 
     messages.error(request, "Specify ?attempt=<id> or ?new_sample=1.")
     return redirect("quizzes:teacher_dashboard")
+
+
+@teacher_required
+def teacher_quiz_students(request, pk):
+    """Roster of every student who has attempted this quiz, with their
+    latest attempt -- lets a teacher grant an individual student a retake
+    even when the quiz doesn't allow retakes generally.
+    """
+    quiz = get_object_or_404(Quiz, pk=pk)
+    require_quiz_owner(quiz, request.user)
+
+    latest_attempts = (
+        quiz.attempts.select_related("student")
+        .order_by("student_id", "-started_at")
+        .distinct("student_id")
+    )
+    rows = sorted(
+        latest_attempts,
+        key=lambda a: (a.student.first_name, a.student.last_name, a.student.username),
+    )
+
+    return render(
+        request,
+        "quizzes/teacher_quiz_students.html",
+        {"quiz": quiz, "rows": rows},
+    )
+
+
+@teacher_required
+@require_http_methods(["POST"])
+def teacher_grant_retake(request, pk, student_id):
+    quiz = get_object_or_404(Quiz, pk=pk)
+    require_quiz_owner(quiz, request.user)
+
+    latest = (
+        quiz.attempts.filter(student_id=student_id).order_by("-started_at").first()
+    )
+    if latest is None:
+        raise Http404("This student has no attempts on this quiz.")
+    if latest.submitted_at is None:
+        messages.error(
+            request, "Can't grant a retake while the student's attempt is still in progress."
+        )
+    else:
+        latest.retake_granted_by_teacher = True
+        latest.save(update_fields=["retake_granted_by_teacher"])
+        messages.success(
+            request,
+            f"Retake granted for {latest.student.get_full_name() or latest.student.username}.",
+        )
+    return redirect("quizzes:teacher_quiz_students", pk=quiz.pk)

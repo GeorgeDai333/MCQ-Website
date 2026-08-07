@@ -23,12 +23,12 @@
         <p><span class="badge badge-pass">Passed</span> Score: {{ row.attempt.score_percent }}%</p>
       {% else %}
         <p><span class="badge badge-fail">Failed</span> Score: {{ row.attempt.score_percent }}%</p>
-        {% if row.quiz.allow_retake_on_fail %}
-          <form method="post" action="{% url 'quizzes:student_start_attempt' row.quiz.pk %}">
-            {% csrf_token %}
-            <button class="btn btn-primary" type="submit">Retake Quiz</button>
-          </form>
-        {% endif %}
+      {% endif %}
+      {% if row.attempt.submitted_at and row.quiz.allow_retake %}
+        <form method="post" action="{% url 'quizzes:student_start_attempt' row.quiz.pk %}">
+          {% csrf_token %}
+          <button class="btn btn-primary" type="submit">Retake Quiz</button>
+        </form>
       {% endif %}
     </div>
   {% empty %}

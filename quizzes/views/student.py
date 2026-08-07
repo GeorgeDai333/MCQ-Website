@@ -92,11 +92,11 @@ def student_start_attempt(request, pk):
         latest.refresh_from_db()
         if latest.submitted_at is None:
             return redirect("quizzes:student_take_attempt", pk=latest.pk)
-        if latest.passed:
-            messages.info(request, "You've already passed this quiz.")
-            return redirect("quizzes:student_dashboard")
-        if not quiz.allow_retake_on_fail:
-            messages.error(request, "Retakes are not allowed for this quiz.")
+        if not quiz.allow_retake and not latest.retake_granted_by_teacher:
+            if latest.passed:
+                messages.info(request, "You've already passed this quiz.")
+            else:
+                messages.error(request, "Retakes are not allowed for this quiz.")
             return redirect("quizzes:student_dashboard")
 
     try:
@@ -184,4 +184,14 @@ def student_attempt_results(request, pk):
     if attempt.submitted_at is None:
         return redirect("quizzes:student_take_attempt", pk=attempt.pk)
 
-    return render(request, "quizzes/attempt_results.html", {"attempt": attempt})
+    questions = None
+    if attempt.quiz.answers_reviewable:
+        questions = attempt.questions.select_related("answer", "bank_item").order_by(
+            "position"
+        )
+
+    return render(
+        request,
+        "quizzes/attempt_results.html",
+        {"attempt": attempt, "questions": questions},
+    )

@@ -41,8 +41,18 @@ class Quiz(models.Model):
             "blank to include every question in the bank on every attempt."
         ),
     )
-    allow_retake_on_fail = models.BooleanField(default=False)
+    allow_retake = models.BooleanField(
+        default=False,
+        help_text="Whether a student may retake this quiz after finishing it, "
+        "whether they passed or failed.",
+    )
     show_class_average = models.BooleanField(default=False)
+    show_answers_after_close = models.BooleanField(
+        default=False,
+        help_text="Once the quiz's closing time has passed, let students "
+        "review their own answers alongside the correct answers on their "
+        "results page.",
+    )
     opening_time = models.DateTimeField()
     closing_time = models.DateTimeField(
         help_text="When the quiz stops accepting new attempts from students."
@@ -117,6 +127,15 @@ class Quiz(models.Model):
     def is_expired(self):
         return self.expiration_time is not None and timezone.now() >= self.expiration_time
 
+    @property
+    def answers_reviewable(self):
+        """Whether a student may see their answers next to the correct ones
+        on their results page -- gated on the teacher's toggle AND the quiz
+        having actually closed, so early finishers can't see (and leak)
+        correct answers while others are still eligible to take it.
+        """
+        return self.show_answers_after_close and timezone.now() >= self.closing_time
+
     def is_visible_to(self, user):
         if self.assignment == self.ASSIGNMENT_ALL:
             return True
@@ -171,6 +190,12 @@ class QuizAttempt(models.Model):
         max_digits=5, decimal_places=2, null=True, blank=True
     )
     passed = models.BooleanField(null=True, blank=True)
+    retake_granted_by_teacher = models.BooleanField(
+        default=False,
+        help_text="A teacher-granted exception letting this specific student "
+        "retake the quiz once even though it doesn't allow retakes generally. "
+        "Only applies while this is the student's latest attempt.",
+    )
 
     class Meta:
         indexes = [

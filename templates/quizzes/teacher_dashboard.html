@@ -13,8 +13,9 @@
         Passing: {{ quiz.passing_score }}%<br>
         Opens: {{ quiz.opening_time }} &middot; Closes to students: {{ quiz.closing_time }}<br>
         Auto-deletes: {% if quiz.expiration_time %}{{ quiz.expiration_time }}{% else %}Never{% endif %}<br>
-        Retakes allowed: {{ quiz.allow_retake_on_fail|yesno:"Yes,No" }} &middot;
-        Show class average: {{ quiz.show_class_average|yesno:"Yes,No" }}<br>
+        Retakes allowed: {{ quiz.allow_retake|yesno:"Yes,No" }} &middot;
+        Show class average: {{ quiz.show_class_average|yesno:"Yes,No" }} &middot;
+        Answer review after closing: {{ quiz.show_answers_after_close|yesno:"Yes,No" }}<br>
         Assigned to:
         {% if quiz.assignment == "all" %}
           All students
@@ -38,6 +39,7 @@
         {% endif %}
         <a class="btn btn-danger" href="{% url 'quizzes:teacher_quiz_delete' quiz.pk %}">Delete</a>
         {% if quiz.status == "active" %}
+          <a class="btn" href="{% url 'quizzes:teacher_quiz_students' quiz.pk %}">Students / Grant Retake</a>
           <a class="btn" href="{% url 'quizzes:teacher_quiz_export_csv' quiz.pk %}">Download CSV Results</a>
           <a class="btn" href="{% url 'quizzes:teacher_quiz_export_docx' quiz.pk %}?new_sample=1">Download Printable Sample (.docx)</a>
         {% endif %}

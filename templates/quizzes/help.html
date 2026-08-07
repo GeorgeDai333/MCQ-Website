@@ -26,11 +26,19 @@
   <div class="faq">
     <details>
       <summary>What information do I set up when creating a quiz?</summary>
-      <p>Title, duration (how long a student has once they start), passing score, quiz length, whether a failed student may retake it, whether to show the class average, an opening time, a closing time, an expiration time, and who it's assigned to.</p>
+      <p>Title, duration (how long a student has once they start), passing score, quiz length, whether a student may retake it, whether to show the class average, an opening time, a closing time, an expiration time, and who it's assigned to.</p>
     </details>
     <details>
       <summary>What does "quiz length" do, and can I leave it blank?</summary>
       <p>Quiz length is how many questions are sampled from your question bank for each attempt. Leave it blank to include every question in the bank on every attempt instead. If the bank has more questions than the quiz length, the system randomly samples that many questions per attempt.</p>
+    </details>
+    <details>
+      <summary>Does "allow retake" only apply if the student failed?</summary>
+      <p>No -- when enabled, a student may retake the quiz after finishing it regardless of whether they passed or failed.</p>
+    </details>
+    <details>
+      <summary>A quiz doesn't allow retakes, but I want to let one specific student retake it anyway. Can I?</summary>
+      <p>Yes. On the dashboard, click "Students / Grant Retake" on that quiz to see everyone who has attempted it, then click "Grant Retake" next to that student. This grants just that one student a single retake, even though the quiz's "allow retake" setting is off for everyone else. It only applies to their next attempt -- if they need another retake later, grant it again.</p>
     </details>
     <details>
       <summary>How do I assign a quiz to specific students instead of everyone?</summary>
@@ -115,6 +123,10 @@
     <details>
       <summary>Can I get a paper copy of the quiz?</summary>
       <p>Yes -- "Download Printable Sample (.docx)" generates a fresh random sample as a Word document. You can also download the exact frozen version of one student's specific attempt (in the order and lettering that student actually saw) for grading or verification.</p>
+    </details>
+    <details>
+      <summary>Can students see which answers they got right or wrong after the quiz?</summary>
+      <p>Only if you enable "Show answers after close" when creating or editing the quiz. Even then, a student only sees their own answers next to the correct answers once the quiz's closing time has passed -- not right after they personally submit -- so an early finisher can't see or leak correct answers to classmates who haven't taken it yet.</p>
     </details>
   </div>
 

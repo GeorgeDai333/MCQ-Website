@@ -15,5 +15,29 @@
       <p><em>This attempt was automatically submitted when time ran out.</em></p>
     {% endif %}
   </div>
+
+  {% if questions is not None %}
+    <div class="card">
+      <h2>Answer Review</h2>
+      {% for aq in questions %}
+        <div class="question-block">
+          <p><strong>{{ aq.position }}.</strong> {{ aq.bank_item.question_text }}</p>
+          {% for opt in aq.shuffled_options %}
+            <p class="option-review{% if opt.label == aq.correct_label %} correct{% endif %}{% if opt.label == aq.answer.selected_label %} selected{% endif %}">
+              {{ opt.label }}. {{ opt.text }}
+              {% if opt.label == aq.correct_label %}<span class="badge badge-pass">Correct answer</span>{% endif %}
+              {% if opt.label == aq.answer.selected_label %}<span class="badge badge-pending">Your answer</span>{% endif %}
+            </p>
+          {% endfor %}
+          {% if not aq.answer.selected_label %}
+            <p><em>You didn't answer this question.</em></p>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% elif attempt.quiz.show_answers_after_close %}
+    <p><em>Answer review will be available once the quiz closes on {{ attempt.quiz.closing_time }}.</em></p>
+  {% endif %}
+
   <a class="btn btn-primary" href="{% url 'quizzes:student_dashboard' %}">Back to Dashboard</a>
 {% endblock %}

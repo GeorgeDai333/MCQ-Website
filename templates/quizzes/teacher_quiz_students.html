@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Students - {{ quiz.title }}{% endblock %}
+{% block content %}
+  <h1>Students for "{{ quiz.title }}"</h1>
+
+  {% if quiz.allow_retake %}
+    <p>This quiz already allows retakes for every student, so a grant isn't needed.</p>
+  {% else %}
+    <p>This quiz doesn't allow retakes generally, but you can grant an individual student one retake anyway.</p>
+  {% endif %}
+
+  {% if rows %}
+    <table>
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Score</th>
+          <th>Result</th>
+          <th>Submitted</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for attempt in rows %}
+          <tr>
+            <td>{{ attempt.student.get_full_name|default:attempt.student.username }} ({{ attempt.student.username }}) &middot; {{ attempt.student.email }}</td>
+            <td>{% if attempt.score_percent is not None %}{{ attempt.score_percent }}%{% else %}--{% endif %}</td>
+            <td>
+              {% if attempt.submitted_at is None %}
+                <span class="badge badge-pending">In progress</span>
+              {% elif attempt.passed %}
+                <span class="badge badge-pass">Passed</span>
+              {% else %}
+                <span class="badge badge-fail">Failed</span>
+              {% endif %}
+            </td>
+            <td>{{ attempt.submitted_at|default:"--" }}</td>
+            <td>
+              {% if attempt.submitted_at is not None %}
+                {% if attempt.retake_granted_by_teacher %}
+                  <span class="badge badge-pending">Retake granted</span>
+                {% else %}
+                  <form method="post" action="{% url 'quizzes:teacher_grant_retake' quiz.pk attempt.student.pk %}">
+                    {% csrf_token %}
+                    <button class="btn" type="submit">Grant Retake</button>
+                  </form>
+                {% endif %}
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No students have attempted this quiz yet.</p>
+  {% endif %}
+
+  <p><a class="btn" href="{% url 'quizzes:teacher_dashboard' %}">Back to Dashboard</a></p>
+{% endblock %}

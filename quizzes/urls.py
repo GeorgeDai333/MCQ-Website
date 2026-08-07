@@ -52,6 +52,16 @@ urlpatterns = [
         teacher.teacher_quiz_export_docx,
         name="teacher_quiz_export_docx",
     ),
+    path(
+        "teacher/quizzes/<int:pk>/students/",
+        teacher.teacher_quiz_students,
+        name="teacher_quiz_students",
+    ),
+    path(
+        "teacher/quizzes/<int:pk>/students/<int:student_id>/grant-retake/",
+        teacher.teacher_grant_retake,
+        name="teacher_grant_retake",
+    ),
     # Student
     path(
         "student/quizzes/<int:pk>/start/",

@@ -15,7 +15,7 @@ class QuizAdmin(admin.ModelAdmin):
         "closing_time",
         "expiration_time",
     )
-    list_filter = ("status", "allow_retake_on_fail", "show_class_average")
+    list_filter = ("status", "allow_retake", "show_class_average", "show_answers_after_close")
     search_fields = ("title", "owner__username", "owner__email")
 
 
@@ -36,8 +36,9 @@ class QuizAttemptAdmin(admin.ModelAdmin):
         "auto_submitted",
         "score_percent",
         "passed",
+        "retake_granted_by_teacher",
     )
-    list_filter = ("quiz", "passed", "auto_submitted")
+    list_filter = ("quiz", "passed", "auto_submitted", "retake_granted_by_teacher")
 
 
 @admin.register(AttemptQuestion)
