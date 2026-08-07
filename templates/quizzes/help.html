@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Help &amp; FAQ{% endblock %}
+{% block content %}
+  <h1>Help &amp; FAQ</h1>
+  <p>Answers for teachers and admins. Click a question to expand it.</p>
+
+  <h2>Accounts &amp; Profiles</h2>
+  <div class="faq">
+    <details>
+      <summary>How do teachers and admins log in?</summary>
+      <p>Teachers use the "Log in as Teacher (Google)" button on the landing page. Only emails on the Teacher Allowlist are signed in as a teacher -- anyone else who logs in that way is signed in as a student instead. The allowlist is re-checked on every login, so adding an email to it later still promotes that person to teacher the next time they log in. Admins (Django superusers) use the separate "Admin login" link on the landing page and sign in with a username and password, not Google.</p>
+    </details>
+    <details>
+      <summary>Why was I asked to confirm my username and name?</summary>
+      <p>The first time anyone logs in, the site requires a username and real first/last name before they can reach anything else on the site. This runs once, right after the first login.</p>
+    </details>
+    <details>
+      <summary>Can I change my username or name later?</summary>
+      <p>Yes -- click "Edit Profile" in the top navigation bar at any time to update your username or name.</p>
+    </details>
+  </div>
+
+  <h2>For Teachers</h2>
+
+  <h3>Creating a Quiz</h3>
+  <div class="faq">
+    <details>
+      <summary>What information do I set up when creating a quiz?</summary>
+      <p>Title, duration (how long a student has once they start), passing score, quiz length, whether a failed student may retake it, whether to show the class average, an opening time, a closing time, an expiration time, and who it's assigned to.</p>
+    </details>
+    <details>
+      <summary>What does "quiz length" do, and can I leave it blank?</summary>
+      <p>Quiz length is how many questions are sampled from your question bank for each attempt. Leave it blank to include every question in the bank on every attempt instead. If the bank has more questions than the quiz length, the system randomly samples that many questions per attempt.</p>
+    </details>
+    <details>
+      <summary>How do I assign a quiz to specific students instead of everyone?</summary>
+      <p>Choose "Specific students" under Assignment -- a checklist of students appears (it's hidden when "All students" is selected). Each student is labeled with their real name, username, and email so they're easy to tell apart.</p>
+    </details>
+    <details>
+      <summary>I don't want to finish creating this quiz. How do I back out?</summary>
+      <p>On the first step (before anything is saved), just click Cancel. Once a draft quiz exists, the upload and review steps offer "Keep as Draft &amp; Quit" (saves your progress to finish later) or "Discard Quiz" (permanently deletes the in-progress draft).</p>
+    </details>
+    <details>
+      <summary>Can I go back and change quiz details (like quiz length) while I'm still uploading or reviewing questions?</summary>
+      <p>Yes -- use the "Edit Quiz Details" button on the upload or review step. Saving there brings you right back to the step you left, instead of sending you to the dashboard.</p>
+    </details>
+  </div>
+
+  <h3>Uploading &amp; Parsing Questions</h3>
+  <div class="faq">
+    <details>
+      <summary>What file format does the question bank upload expect?</summary>
+      <p>A .txt or .docx file containing numbered questions, each with lettered options (A, B, C, ...), followed by a trailing answer key mapping question numbers to the correct letter. The file can contain more questions than the quiz will actually use -- the system samples from it per attempt.</p>
+    </details>
+    <details>
+      <summary>How does the system turn my uploaded file into quiz questions?</summary>
+      <p>The raw text is sent to the Claude API (an LLM), which reads the numbered questions, their lettered options, and the trailing answer key, and returns structured question data -- so you don't have to type each question into a form by hand.</p>
+    </details>
+    <details>
+      <summary>Do retakes show the exact same questions as the first attempt?</summary>
+      <p>No. When a student retakes a quiz, the system prefers bank questions they haven't seen yet on that quiz, and only reuses already-seen questions once there aren't enough unseen ones left to fill the quiz length.</p>
+    </details>
+  </div>
+
+  <h3>Reviewing &amp; Editing Questions</h3>
+  <div class="faq">
+    <details>
+      <summary>The parser missed a question or got something wrong. What do I do?</summary>
+      <p>Anything that couldn't be parsed automatically is flagged separately on the review page so you can fill it in manually. You can also fix any parsed question directly, since every field is editable.</p>
+    </details>
+    <details>
+      <summary>How do I add or remove a question on the review page?</summary>
+      <p>Click "+ Add Question" to add a new blank question row (there's no limit on how many you can add). Every question has its own "Delete Question" button, which removes it from view immediately.</p>
+    </details>
+    <details>
+      <summary>I got an error when saving. How do I find which question caused it?</summary>
+      <p>An error summary appears next to the Save buttons listing exactly which row has a problem (for example, a marked correct answer that doesn't match any filled-in option) and why -- click it to jump straight to that row.</p>
+    </details>
+    <details>
+      <summary>What's the difference between "Save and Quit" and "Confirm &amp; Activate Quiz"?</summary>
+      <p>"Save and Quit" saves your progress as a draft so you can continue later without opening the quiz to students yet. "Confirm &amp; Activate Quiz" finalizes the question bank and opens the quiz to students.</p>
+    </details>
+    <details>
+      <summary>Can I still edit questions after the quiz is already active?</summary>
+      <p>Yes, as long as the quiz isn't locked yet (see "When can I no longer edit a quiz?" below). From the dashboard, click "Edit Questions" on an active quiz to add, remove, or fix questions -- the button reads "Save Changes" instead of "Confirm &amp; Activate Quiz" since the quiz is already live.</p>
+    </details>
+  </div>
+
+  <h3>Editing, Locking, and Deleting Quizzes</h3>
+  <div class="faq">
+    <details>
+      <summary>When can I no longer edit a quiz?</summary>
+      <p>A quiz "locks" the moment its opening time passes, or the moment any student starts an attempt on it -- whichever happens first. This prevents a quiz from being changed for some students but not others. Once locked, a quiz can no longer be edited, only deleted.</p>
+    </details>
+    <details>
+      <summary>What's the difference between closing time and expiration time?</summary>
+      <p>Closing time is when the quiz stops accepting new attempts from students -- the quiz and its data still exist afterward. Expiration time is a separate, optional field: once it passes, the quiz (question bank, attempts, and results included) is permanently and automatically deleted. Leave expiration time blank to keep the quiz around indefinitely.</p>
+    </details>
+    <details>
+      <summary>Can I delete a quiz at any time?</summary>
+      <p>Yes, with a confirmation step. Deleting a quiz permanently removes it, its question bank, and every student attempt and answer tied to it -- this cannot be undone.</p>
+    </details>
+  </div>
+
+  <h3>Results &amp; Exports</h3>
+  <div class="faq">
+    <details>
+      <summary>Can students see how the class is doing on average?</summary>
+      <p>Only if you enable "show class average" when creating or editing the quiz -- then students see the class's average score on their dashboard for that quiz.</p>
+    </details>
+    <details>
+      <summary>How do I get a spreadsheet of student results?</summary>
+      <p>Click "Download CSV Results" on the dashboard for any active quiz. It includes each student's username, name, email, score, pass/fail status, submission time, and whether it was auto-submitted.</p>
+    </details>
+    <details>
+      <summary>Can I get a paper copy of the quiz?</summary>
+      <p>Yes -- "Download Printable Sample (.docx)" generates a fresh random sample as a Word document. You can also download the exact frozen version of one student's specific attempt (in the order and lettering that student actually saw) for grading or verification.</p>
+    </details>
+  </div>
+
+  <h2>For Admins</h2>
+  <div class="faq">
+    <details>
+      <summary>How do I add or remove a teacher?</summary>
+      <p>In the Django admin site, manage the Teacher Allowlist -- add or remove the emails that should be automatically promoted to teacher the next time that person logs in with Google.</p>
+    </details>
+    <details>
+      <summary>What else can I manage in the Django admin site?</summary>
+      <p>Every user's Profile (their role and whether they've completed profile setup), and every Quiz, Question Bank Item, Quiz Attempt, Attempt Question, and Attempt Answer in the system, for support or troubleshooting.</p>
+    </details>
+    <details>
+      <summary>How does the site get its initial admin account and Google login set up on a fresh deploy?</summary>
+      <p>Two management commands run automatically on deploy: one creates the initial admin account from environment variables (safe to run on every boot -- it's a no-op once the account exists, so it never overwrites a password changed later), and another upserts the Google login configuration from environment variables so Google sign-in works without any manual click-through in the admin site.</p>
+    </details>
+    <details>
+      <summary>Does anything clean up old quizzes or abandoned attempts automatically?</summary>
+      <p>Yes. Two management commands handle this and run automatically on an hourly schedule (a GitHub Actions job, not something anyone needs to run by hand): one deletes any quiz past its expiration time, and the other auto-submits any abandoned in-progress attempt whose deadline has passed.</p>
+    </details>
+  </div>
+{% endblock %}

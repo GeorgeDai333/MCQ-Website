@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.urls import path
 
+from .views import help as help_views
 from .views import student, teacher
 
 app_name = "quizzes"
@@ -17,6 +18,7 @@ def dashboard(request):
 
 urlpatterns = [
     path("", dashboard, name="dashboard"),
+    path("help/", help_views.help_page, name="help"),
     # Teacher
     path("teacher/", teacher.teacher_dashboard, name="teacher_dashboard"),
     path("teacher/quizzes/new/", teacher.teacher_quiz_create, name="teacher_quiz_create"),

@@ -13,6 +13,9 @@
     <div>
       {% if user.is_authenticated %}
         <span>{{ user.email }}</span>
+        {% if user.is_superuser or user.profile.is_teacher %}
+          <a class="btn" href="{% url 'quizzes:help' %}">Help</a>
+        {% endif %}
         <a class="btn" href="{% url 'accounts:edit_profile' %}">Edit Profile</a>
         <form class="logout-form" method="post" action="{% url 'account_logout' %}">
           {% csrf_token %}
